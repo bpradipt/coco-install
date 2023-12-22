@@ -1,15 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: azure-confidential-image-creation
-  namespace: openshift-sandboxed-containers-operator
+  name: azure-ubuntu-image-creation
 spec:
   parallelism: 1
   completions: 1
   backoffLimit: 1
   template:
     metadata:
-      name: azure-confidential-image-creation
+      name: azure-ubuntu-image-creation
     spec:
       volumes:
       - name: shared-data
@@ -19,7 +18,7 @@ spec:
 
       initContainers:
       - name: payload
-        image: quay.io/openshift_sandboxed_containers/openshift-sandboxed-containers-payload:rhel92cvm
+        image: quay.io/bpradipt/podvm-binaries-ubuntu-amd64:latest
         imagePullPolicy: Always
         volumeMounts:
         - name: shared-data
@@ -29,7 +28,7 @@ spec:
 
       containers:
       - name: create
-        image: registry.access.redhat.com/ubi9/ubi:9.2
+        image: registry.access.redhat.com/ubi9/ubi:9.3
         securityContext:
           runAsUser: 0 # needed for container mode dnf access
         volumeMounts:
@@ -39,25 +38,27 @@ spec:
           mountPath: /output
         env:
           - name: PODVM_DISTRO
-            value: rhel
+            value: ubuntu
           - name: PUBLISHER
-            value: "redhat"
+            value: "canonical"
           - name: OFFER
-            value: "rhel-cvm-test-preview"
+            value: "0001-com-ubuntu-server-jammy"
           - name: SKU
-            value: "9_2"
+            value: "22_04-lts"
           - name: GALLERY_NAME
-            value: "rhelCVMGallery"
+            value: "ubuntuVMGallery"
           - name: GALLERY_IMAGE_NAME
-            value: "cvm-image"
+            value: "vm-image"
           - name: GALLERY_VERSION
             value: "0.0.1"
           - name: VM_SIZE
             value: "Standard_D2as_v5"
           - name: IMAGE_NAME
-            value: "cvm-rhel-image"
+            value: "vm-ubuntu-image"
           - name: DISABLE_CLOUD_CONFIG
             value: "true"
+          - name: ENABLE_NVIDIA_GPU
+            value: "yes"
 
         envFrom:
         - secretRef:
@@ -80,7 +81,7 @@ spec:
           curl -L https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_amd64 -o /usr/bin/yq
           echo "8afd786b3b8ba8053409c5e7d154403e2d4ed4cf3e93c237462dc9ef75f38c8d /usr/bin/yq" | sha256sum -c
           chmod +x /usr/bin/yq
-          git clone https://github.com/confidential-containers/cloud-api-adaptor.git && (cd cloud-api-adaptor && git checkout 88cfd39a0747f24d6aaf0e3fd92af4c0d4fc5f5a)
+          git clone https://github.com/confidential-containers/cloud-api-adaptor.git && (cd cloud-api-adaptor && git checkout 54d93908a604473cca51c0e004070d089f1b4122)
           tar xvf /payload/podvm-binaries.tar.gz -C cloud-api-adaptor/podvm/files
           mkdir cloud-api-adaptor/podvm/files/pause_bundle # workaround to avoid pause image requirement
           [[ ! "${AZURE_REGION}" ]] && echo "AZURE_REGION is missing" && exit 1
@@ -100,10 +101,10 @@ spec:
             --sku GreatSku \
             --os-type "Linux" \
             --os-state "Generalized" \
-            --hyper-v-generation "V2" \
             --location "${AZURE_REGION}" \
-            --architecture "x64" \
-            --features SecurityType=ConfidentialVmSupported
+            --architecture "x64"
+            #--hyper-v-generation "V2" \
+            #--features SecurityType=ConfidentialVmSupported
           export PKR_VAR_client_id=${AZURE_CLIENT_ID}
           export PKR_VAR_client_secret=${AZURE_CLIENT_SECRET}
           export PKR_VAR_subscription_id=${AZURE_SUBSCRIPTION_ID}
@@ -130,7 +131,7 @@ spec:
           echo "DONE: ${AZURE_IMAGE_ID}"
 
       - name: result
-        image: registry.access.redhat.com/ubi9/ubi:9.2
+        image: registry.access.redhat.com/ubi9/ubi:9.3
         volumeMounts:
         - name: image-id
           mountPath: /output
