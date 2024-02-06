@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: azure-podvm-image-cm
+  namespace: openshift-sandboxed-containers-operator
+data:
+  # PodVM image distro
+  PODVM_DISTRO: rhel
+
+  # Gallery
+  IMAGE_GALLERY_NAME: "PodVMGallery"
+
+  # Image definition
+  IMAGE_DEFINITION_NAME: "podvm-image"
+  IMAGE_DEFINITION_PUBLISHER: "RedHat"
+  IMAGE_DEFINITION_OFFER: "OSC-PodVM"
+  IMAGE_DEFINITION_SKU: "OSC-PodVM"
+  IMAGE_DEFINITION_OS_TYPE: "Linux"
+  IMAGE_DEFINITION_OS_STATE: "Generalized"
+  IMAGE_DEFINITION_VM_GENERATION: "V2"
+  IMAGE_DEFINITION_ARCHITECTURE: "x64"
+
+  # Image
+  IMAGE_BASE_NAME: "podvm-image"
+  IMAGE_VERSION_MAJ_MIN: "0.0"
+
+  # Packer VM size
+  VM_SIZE: "Standard_D2as_v5"
+
+  # Pod VM sources
+  # If changing the source, then ensure the respective payload binaries are available
+  # for the new source
+  CAA_SRC: "https://github.com/bpradipt/cloud-api-adaptor.git"
+  CAA_REF: "OSC-1.6.0"
+
+  # Booleans
+  INSTALL_PACKAGES: "no"
+  DOWNLOAD_SOURCES: "no"
+  CONFIDENTIAL_COMPUTE_ENABLED: "no"
+  DISABLE_CLOUD_CONFIG: "true"
+  ENABLE_NVIDIA_GPU: "yes"
+  UPDATE_PEERPODS_CM: "yes"
+  BOOT_FIPS: "no"
+
+  # NVIDIA GPU vars
+  NVIDIA_DRIVER_VERSION: "535"
+  NVIDIA_USERSPACE_VERSION: "1.13.5-1"
