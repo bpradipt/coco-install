@@ -1,0 +1,6 @@
+[kata-containers-tdx-local-repo]
+name=Kata Containers with TDX baremetal support
+baseurl=file:///var/cache/kata-containers-tdx-repo
+enabled=1
+repo_gpgcheck=0
+gpgcheck=0
